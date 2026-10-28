@@ -685,6 +685,7 @@ private slots:
 
     void on_actionToolsFirewallAclRules_triggered();
     void on_actionToolsCredentials_triggered();
+    void on_actionToolsSQL_triggered();
 
     void externalMenuItem_triggered();
 

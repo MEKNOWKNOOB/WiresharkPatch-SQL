@@ -675,6 +675,7 @@
     </property>
     <addaction name="actionToolsFirewallAclRules"/>
     <addaction name="actionToolsCredentials"/>
+    <addaction name="actionToolsSQL"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -2911,6 +2912,11 @@
   <action name="actionToolsCredentials">
    <property name="text">
     <string>Credentials</string>
+   </property>
+   </action>
+  <action name="actionToolsSQL">
+   <property name="text">
+    <string>SQL</string>
    </property>
   </action>
  </widget>

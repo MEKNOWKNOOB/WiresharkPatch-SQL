@@ -3445,6 +3445,11 @@ void MainWindow::on_actionToolsCredentials_triggered()
     credentials_dialog->show();
 }
 
+void MainWindow::on_actionToolsSQL_triggered()
+{
+    
+}
+
 // Help Menu
 void MainWindow::on_actionHelpContents_triggered() {
 
