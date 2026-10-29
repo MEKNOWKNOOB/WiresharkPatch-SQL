@@ -39,6 +39,9 @@ PSQLShell::PSQLShell(std::string dbName, std::string user, std::string passkey)
 
     INSTANCE = this;
     AttemptInitShell(dbName, user, passkey);
+
+    // Hook into the capture stream
+    capture_callback_add(CaptureCallback, (gpointer) this);
 }
 
 /// @brief Delister
@@ -94,4 +97,14 @@ bool PSQLShell::AttemptInitShell(std::string dbName, std::string user, std::stri
 void PSQLShell::HandleDisconnect()
 {
     delete PSQLShell::INSTANCE;
+}
+
+void PSQLShell::CaptureCallback(gint event, capture_session *cap_session, gpointer user_data)
+{
+    std::cout << "capture callback called!" << std::endl;
+
+    // CaptureFile *capture_file = static_cast<CaptureFile *>(user_data);
+    // if (!capture_file) return;
+
+    // capture_file->captureSessionEvent(event, cap_session);
 }
