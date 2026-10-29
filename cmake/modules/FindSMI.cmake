@@ -20,7 +20,7 @@ FindWSWinLibs("libsmi-.*" "SMI_HINTS")
 
 FIND_PATH(SMI_INCLUDE_DIR smi.h HINTS "${SMI_HINTS}/include" )
 
-SET(SMI_NAMES smi libsmi-2)
+SET(SMI_NAMES libsmi-2 smi)
 FIND_LIBRARY(SMI_LIBRARY NAMES ${SMI_NAMES} HINTS "${SMI_HINTS}/lib" )
 
 # handle the QUIETLY and REQUIRED arguments and set SMI_FOUND to TRUE if
