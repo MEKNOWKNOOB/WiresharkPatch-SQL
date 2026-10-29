@@ -557,6 +557,7 @@ set(WIRESHARK_QT_UI
 	search_frame.ui
 	sequence_dialog.ui
 	show_packet_bytes_dialog.ui
+	sql_dialog.ui
 	widgets/splash_overlay.ui
 	supported_protocols_dialog.ui
 	tap_parameter_dialog.ui
@@ -683,6 +684,8 @@ add_library(qtui OBJECT
 
 	${WIRESHARK_QT_TAP_SRC}
 	wireshark-tap-register.c
+	"sql_dialog.cpp"
+	"sql_dialog.h"
 )
 
 target_include_directories(qtui SYSTEM

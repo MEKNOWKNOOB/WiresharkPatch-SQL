@@ -144,6 +144,7 @@ DIAG_ON(frame-larger-than=)
 #include "sctp_graph_dialog.h"
 #include "sequence_dialog.h"
 #include "show_packet_bytes_dialog.h"
+#include "sql_dialog.h"
 #include "stats_tree_dialog.h"
 #include <ui/qt/utils/stock_icon.h>
 #include "supported_protocols_dialog.h"
@@ -3447,7 +3448,8 @@ void MainWindow::on_actionToolsCredentials_triggered()
 
 void MainWindow::on_actionToolsSQL_triggered()
 {
-    
+    SqlDialog sql_dialog(this);
+    sql_dialog.exec();
 }
 
 // Help Menu
