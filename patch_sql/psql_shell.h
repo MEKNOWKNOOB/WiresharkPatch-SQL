@@ -5,25 +5,41 @@
 #include "ui/capture.h"
 // #include "ui/qt/capture_event.h"
 // #include "ui/qt/capture_file.h"
+#include <epan/packet.h>
+#include <epan/tap.h>
+#include <epan/address.h>
+#include <epan/to_str.h>
 
 #include <string>
+
+struct PSQLTap
+{
+    int packet_type;
+    int priority;
+};
 
 class PSQLShell
 {
 public:
     static PSQLShell *INSTANCE;
 
+    static int proto_psql;
+    static dissector_handle_t psql_handle;
+    static int psql_tap;
+
     PSQLShell(std::string dbName, std::string user, std::string passkey);
     ~PSQLShell();
     bool Write(const std::string& input);
-\
+
+    static int dissect_psql(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data _U_);
+
 private:
     FILE * shellPipe;
 
     bool AttemptInitShell(std::string dbName, std::string user, std::string passkey);
     void HandleDisconnect();
 
-    static void CaptureCallback(gint event, capture_session *cap_session, gpointer user_data);
+    void RegisterTap();
 };
 
 #endif // PSQLSHELL_H
