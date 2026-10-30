@@ -24,6 +24,7 @@ PSQLShell::PSQLShell(std::string dbName, std::string user, std::string passkey)
 
     if (!AttemptInitShell(dbName, user, passkey))
     {
+        std::cerr << "shell attempt failed" << std::endl;
         INSTANCE = nullptr;
         return;
     }

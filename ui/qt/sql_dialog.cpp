@@ -48,8 +48,10 @@ void SqlDialog::on_pushButtonConnect_clicked()
 
     if (PSQLShell::INSTANCE == nullptr)
     {
+        std::cerr << "instance is null" << std::endl;
         QMessageBox::information(this, "Failed", "Failed To Connect to PostgreSQL Database");
         delete shell;
+        std::cerr << "deleted shell" << std::endl;
         return;
     }
 
