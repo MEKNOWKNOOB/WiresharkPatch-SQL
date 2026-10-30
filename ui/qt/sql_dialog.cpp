@@ -46,7 +46,7 @@ void SqlDialog::on_pushButtonConnect_clicked()
     PSQLShell *shell = new PSQLShell(dbName, user, pass);
     QApplication::restoreOverrideCursor();
 
-    if (PSQLShell::INSTANCE != shell)
+    if (PSQLShell::INSTANCE == nullptr)
     {
         QMessageBox::information(this, "Failed", "Failed To Connect to PostgreSQL Database");
         delete shell;

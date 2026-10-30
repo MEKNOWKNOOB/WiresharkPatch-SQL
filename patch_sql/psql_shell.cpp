@@ -24,6 +24,7 @@ PSQLShell::PSQLShell(std::string dbName, std::string user, std::string passkey)
 
     if (!AttemptInitShell(dbName, user, passkey))
     {
+        INSTANCE = nullptr;
         return;
     }
 
@@ -70,7 +71,6 @@ bool PSQLShell::AttemptInitShell(std::string dbName, std::string user, std::stri
     if (std::system(testCmd.c_str()) != 0)
     {
         std::cerr << "Failed to establish connection" << std::endl;
-        INSTANCE = nullptr;
         return false;
     }
 
@@ -91,7 +91,6 @@ bool PSQLShell::AttemptInitShell(std::string dbName, std::string user, std::stri
     if (std::system(testCmd.c_str()) != 0)
     {
         std::cerr << "Failed to establish connection" << std::endl;
-        INSTANCE = nullptr;
         return false;
     }
 
