@@ -56,7 +56,7 @@ PSQLShell::~PSQLShell()
 /// @brief Also a delister
 void PSQLShell::HandleDisconnect()
 {
-    if(INSTANCE != nullptr)
+    if(INSTANCE == nullptr)
     {
         return;
     }
