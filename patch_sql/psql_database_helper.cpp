@@ -1,15 +1,15 @@
 #include "psql_database_helper.h"
 
-
 PSQLDatabaseHelper::PSQLDatabaseHelper(std::string tableName, std::vector<std::tuple<std::string, std::string>> columns)
 {
     this->tableName = tableName;
     this->columns = columns; // Vector of (type, name)
+    std::cout << "DatabaseHelper Created" << std::endl;
 }
 
 PSQLDatabaseHelper::~PSQLDatabaseHelper()
 {
-
+    
 }
 
 std::string PSQLDatabaseHelper::CreateInitializeTableQuery()
@@ -34,14 +34,6 @@ std::string PSQLDatabaseHelper::CreateInitializeTableQuery()
         query += "\n";
     }
     query += ");";
-    std::cout << "After for loop" << std::endl;
-
-    // Put in all of the variables
-    // CREATE TABLE cars (
-    // brand VARCHAR(255),
-    // model VARCHAR(255),
-    // year INT
-    // );"
 
     return query;
 }
@@ -51,20 +43,10 @@ std::string PSQLDatabaseHelper::CreateAddPacketQuery(std::vector<std::vector<std
     // Construct a query to push the packet data to the table
     // Query construction
     std::string query = "";
-    
-    /*
-    INSERT INTO cars (brand, model, year)
-    VALUES
-    ('Volvo', 'p1800', 1968),
-    ('BMW', 'M1', 1978),
-    ('Toyota', 'Celica', 1975);
-    */
 
+    // INSERT FROMAT
     query += "INSERT INTO " + tableName;
-
-    // Add the columns
     query += "(";
-
     for (int col = 0; col < columns.size(); col++)
     {
         query += std::get<1>(columns[col]);
@@ -73,25 +55,17 @@ std::string PSQLDatabaseHelper::CreateAddPacketQuery(std::vector<std::vector<std
             query += ",";
         }
     }
-
     query += ")\n";
 
-    // Add the values
+    // VALUES FORMAT
     query += "VALUES\n";
-
     for (int row = 0; row < data.size(); row++)
     {
         query += "(";
+
+        // hardcoded table
         for (int col = 0; col < data[row].size(); col++)
         {
-            /*
-            
-    columns.push_back(std::tuple<std::string, std::string>("TIMESTAMP", "Timestamp"));
-    columns.push_back(std::tuple<std::string, std::string>("VARCHAR(255)", "Source"));
-    columns.push_back(std::tuple<std::string, std::string>("VARCHAR(255)", "Destination"));
-    columns.push_back(std::tuple<std::string, std::string>("INT", "Length"));
-
-            */
             if (std::get<0>(columns[col]) == "TIMESTAMP")
             {
                 query += "to_timestamp(" + data[row][col] + "::double precision / 1000)";
@@ -110,6 +84,7 @@ std::string PSQLDatabaseHelper::CreateAddPacketQuery(std::vector<std::vector<std
                 query += ",";
             }
         }
+
         query += ")";
         if (row != data.size() - 1)
         {

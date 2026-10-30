@@ -12,30 +12,6 @@ dissector_handle_t PSQLShell::psql_handle = nullptr;
 
 int PSQLShell::psql_tap = -1;
 
-/// @brief Write to PSQL shell, attempts to handle disconnects if no shell is active
-bool PSQLShell::Write(const std::string &input)
-{
-    if (!shellPipe)
-    {
-        return false;
-    }
-
-    std::cout << ">>> Received input: " << input << std::endl;
-
-    if (fputs((input + "\n").c_str(), shellPipe) == EOF)
-    {
-        HandleDisconnect();
-        return false;
-    }
-    if (fflush(shellPipe) != 0 || ferror(shellPipe))
-    {
-        HandleDisconnect();
-        return false;
-    }
-
-    return true;
-}
-
 /// @brief Init
 PSQLShell::PSQLShell(std::string dbName, std::string user, std::string passkey)
 {
@@ -45,61 +21,23 @@ PSQLShell::PSQLShell(std::string dbName, std::string user, std::string passkey)
     }
 
     INSTANCE = this;
-    bool initialized = AttemptInitShell(dbName, user, passkey);
 
-    if (initialized) {
-        std::cout << "After Init Shell" << std::endl;
-
-        std::string tableName = "TestTable1";
-        std::vector<std::tuple<std::string, std::string>> columns;
-        columns.push_back(std::tuple<std::string, std::string>("TIMESTAMP", "Timestamp"));
-        columns.push_back(std::tuple<std::string, std::string>("VARCHAR(255)", "Source"));
-        columns.push_back(std::tuple<std::string, std::string>("VARCHAR(255)", "Destination"));
-        columns.push_back(std::tuple<std::string, std::string>("INT", "Length"));
-        // columns.push_back(std::tuple<std::string, std::string>("INT", "TestColumn2_Int"));
-
-        // std::cout << "[" << timestamp << "] "
-        //           << "Src: " << src_addr << " -> "
-        //           << "Dst: " << dest_addr << " | "
-        //           << "Proto: " << protocol_name << " | "
-        //           << "Len: " << packet_len << " bytes" << std::endl;
-
-        std::cout << "After Column Init" << std::endl;
-
-        DatabaseHelper = new PSQLDatabaseHelper(tableName, columns);
-
-        std::cout << "DatabaseHelper created" << std::endl;
-
-        std::string initTableQuery = DatabaseHelper->CreateInitializeTableQuery();
-
-        Write(initTableQuery);
-
-        std::cout << "-> Initialize Table Query:" << std::endl
-                << initTableQuery << std::endl;
-
-        // std::vector<std::vector<std::string>> data;
-        // std::vector<std::string> row1;
-        // row1.push_back("Test Name");
-        // data.push_back(row1);
-
-        // std::string addPacketQuery = DatabaseHelper->CreateAddPacketQuery(data);
-        // Write(addPacketQuery);
-        // // row1.push_back("5");
-        // std::cout << "-> Test Add Packet Data:" << std::endl << addPacketQuery << std::endl;
-
-        // Hook into the capture stream
-        // capture_callback_add(CaptureCallback, (gpointer) this);
-
-        // Register a tap to hook into the packet data stream
-        std::cout << "Calling RegisterTap" << std::endl;
-        RegisterTap();
+    if (!AttemptInitShell(dbName, user, passkey))
+    {
+        return;
     }
+
+    AttemptInitDatabase();
 }
 
 /// @brief Delister
 PSQLShell::~PSQLShell()
 {
     INSTANCE = nullptr;
+
+    delete DatabaseHelper;
+    DatabaseHelper = nullptr;
+    
     if (shellPipe)
     {
 #if defined(_WIN32) || defined(_WIN64)
@@ -108,6 +46,12 @@ PSQLShell::~PSQLShell()
         pclose(shellPipe);
 #endif
     }
+}
+
+/// @brief Also a delister
+void PSQLShell::HandleDisconnect()
+{
+    delete PSQLShell::INSTANCE;
 }
 
 /// @brief Attempts to connect to PSQL
@@ -165,12 +109,58 @@ bool PSQLShell::AttemptInitShell(std::string dbName, std::string user, std::stri
     return true;
 }
 
-/// @brief Also a delister
-void PSQLShell::HandleDisconnect()
+/// @brief Create PSQLTable and register Tap
+void PSQLShell::AttemptInitDatabase()
 {
-    delete PSQLShell::INSTANCE;
+    std::string tableName = "Packets";
+    std::vector<std::tuple<std::string, std::string>> columns;
+    columns.push_back(std::tuple<std::string, std::string>("INT", "Number"));
+    columns.push_back(std::tuple<std::string, std::string>("TIMESTAMP", "Timestamp"));
+    columns.push_back(std::tuple<std::string, std::string>("VARCHAR(255)", "Source"));
+    columns.push_back(std::tuple<std::string, std::string>("VARCHAR(255)", "Destination"));
+    columns.push_back(std::tuple<std::string, std::string>("VARCHAR(255)", "Protocol"));
+    columns.push_back(std::tuple<std::string, std::string>("INT", "Length"));
+
+    std::cout << "Vector Table Packets Created" << std::endl;
+
+    DatabaseHelper = new PSQLDatabaseHelper(tableName, columns);
+    std::string initTableQuery = DatabaseHelper->CreateInitializeTableQuery();
+    if (Write(initTableQuery))
+    {
+        std::cout << "-> DataTable Created" << std::endl
+                  << initTableQuery << std::endl;
+    }
+
+    // Register a tap to hook into the packet data stream
+    std::cout << "Calling RegisterTap" << std::endl;
+    RegisterTap();
 }
 
+/// @brief Write to PSQL shell, attempts to handle disconnects if no shell is active
+bool PSQLShell::Write(const std::string &input)
+{
+    if (!shellPipe)
+    {
+        return false;
+    }
+
+    std::cout << ">>> Received input: " << input << std::endl;
+
+    if (fputs((input + "\n").c_str(), shellPipe) == EOF)
+    {
+        HandleDisconnect();
+        return false;
+    }
+    if (fflush(shellPipe) != 0 || ferror(shellPipe))
+    {
+        HandleDisconnect();
+        return false;
+    }
+
+    return true;
+}
+
+/// @brief Register Tap, the system that reads the packets
 void PSQLShell::RegisterTap()
 {
     if (proto_psql != -1)
@@ -188,48 +178,53 @@ void PSQLShell::RegisterTap()
     std::cout << "Tap registered" << std::endl;
 }
 
+/// @brief Confusing static function that register_dissector needs
 int PSQLShell::dissect_psql(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data _U_)
 {
+    if(INSTANCE == nullptr)
+    {
+        std::cout << "No PSQL shell active" << std::endl;
+        return -1;
+    }
+
     std::cout << "Called dissect_psql" << std::endl;
+
     struct PSQLTap *psqlInfo = wmem_new0(pinfo->pool, struct PSQLTap);
     psqlInfo->packet_type = tvb_get_guint8(tvb, 0);
     psqlInfo->priority = tvb_get_ntohs(tvb, 8);
 
-    std::cout << "> Packet Type: " << psqlInfo->packet_type << std::endl;
-    std::cout << "> Priority: " << psqlInfo->priority << std::endl;
-
     tap_queue_packet(psql_tap, pinfo, psqlInfo);
 
-    // Get time
-    double timestamp = (double)pinfo->abs_ts.secs * 1000 + ((double)pinfo->abs_ts.nsecs / 1000000.0);
-
-    // Get source, destination
+    // Get Data
+    std::string number = std::to_string(pinfo->num);
+    std::string timestamp = std::to_string((double)pinfo->abs_ts.secs * 1000 + ((double)pinfo->abs_ts.nsecs / 1000000.0));
     std::string src_addr = address_to_str(wmem_packet_scope(), &(pinfo->src));
     std::string dest_addr = address_to_str(wmem_packet_scope(), &(pinfo->dst));
-
-    // Get protocol layer
-    std::string protocol_name = pinfo->current_proto;
-
-    // Get packet length
-    guint32 packet_len = pinfo->fd->pkt_len;
+    const gchar *raw_protocol_name = col_get_text(pinfo->cinfo, COL_PROTOCOL);
+    std::string protocol_name = (raw_protocol_name) ? std::string(raw_protocol_name) : "N/A";
+    std::string packet_len = std::to_string(pinfo->fd->pkt_len);
 
     // Here's our data!
-    std::cout << "[" << timestamp << "] "
+    std::cout << number << " | "
+              << "[" << timestamp << "] "
               << "Src: " << src_addr << " -> "
               << "Dst: " << dest_addr << " | "
               << "Proto: " << protocol_name << " | "
               << "Len: " << packet_len << " bytes" << std::endl;
 
-    std::cout << "Finished dissection for dissect_psql" << std::endl;
+    std::vector<std::vector<std::string>> table;
+    std::vector<std::string> tuple;
 
-    std::vector<std::vector<std::string>> data2;
-    std::vector<std::string> row1;
-    row1.push_back(std::to_string(timestamp));
-    row1.push_back(src_addr);
-    row1.push_back(dest_addr);
-    row1.push_back(std::to_string(packet_len));
-    data2.push_back(row1);
-    std::string addPacketQuery = DatabaseHelper->CreateAddPacketQuery(data2);
+    tuple.push_back(number);
+    tuple.push_back(timestamp);
+    tuple.push_back(src_addr);
+    tuple.push_back(dest_addr);
+    tuple.push_back(protocol_name);
+    tuple.push_back(packet_len);
+
+    table.push_back(tuple);
+
+    std::string addPacketQuery = DatabaseHelper->CreateAddPacketQuery(table);
     INSTANCE->Write(addPacketQuery);
 
     return tvb_captured_length(tvb);

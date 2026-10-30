@@ -18,8 +18,6 @@ public:
 private:
     std::string tableName;
     std::vector<std::tuple<std::string, std::string>> columns;
-
-
 };
 
 #endif

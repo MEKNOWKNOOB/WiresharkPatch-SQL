@@ -3,8 +3,6 @@
 
 #include <glib.h>
 #include "ui/capture.h"
-// #include "ui/qt/capture_event.h"
-// #include "ui/qt/capture_file.h"
 #include <epan/packet.h>
 #include <epan/tap.h>
 #include <epan/address.h>
@@ -24,7 +22,6 @@ class PSQLShell
 public:
     static PSQLShell *INSTANCE;
     static PSQLDatabaseHelper *DatabaseHelper;
-
     static int proto_psql;
     static dissector_handle_t psql_handle;
     static int psql_tap;
@@ -39,8 +36,8 @@ private:
     FILE * shellPipe;
 
     bool AttemptInitShell(std::string dbName, std::string user, std::string passkey);
+    void AttemptInitDatabase();
     void HandleDisconnect();
-
     void RegisterTap();
 };
 
