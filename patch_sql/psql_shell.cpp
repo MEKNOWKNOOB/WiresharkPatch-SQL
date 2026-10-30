@@ -100,7 +100,11 @@ PSQLShell::~PSQLShell()
     INSTANCE = nullptr;
     if (shellPipe)
     {
+#if defined(_WIN32) || defined(_WIN64)
         _pclose(shellPipe);
+#elif defined(__linux__)
+        pclose(shellPipe);
+#endif
     }
 }
 
