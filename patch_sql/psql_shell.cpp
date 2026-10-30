@@ -45,53 +45,55 @@ PSQLShell::PSQLShell(std::string dbName, std::string user, std::string passkey)
     }
 
     INSTANCE = this;
-    AttemptInitShell(dbName, user, passkey);
+    bool initialized = AttemptInitShell(dbName, user, passkey);
 
-    std::cout << "After Init Shell" << std::endl;
+    if (initialized) {
+        std::cout << "After Init Shell" << std::endl;
 
-    std::string tableName = "TestTable1";
-    std::vector<std::tuple<std::string, std::string>> columns;
-    columns.push_back(std::tuple<std::string, std::string>("TIMESTAMP", "Timestamp"));
-    columns.push_back(std::tuple<std::string, std::string>("VARCHAR(255)", "Source"));
-    columns.push_back(std::tuple<std::string, std::string>("VARCHAR(255)", "Destination"));
-    columns.push_back(std::tuple<std::string, std::string>("INT", "Length"));
-    // columns.push_back(std::tuple<std::string, std::string>("INT", "TestColumn2_Int"));
+        std::string tableName = "TestTable1";
+        std::vector<std::tuple<std::string, std::string>> columns;
+        columns.push_back(std::tuple<std::string, std::string>("TIMESTAMP", "Timestamp"));
+        columns.push_back(std::tuple<std::string, std::string>("VARCHAR(255)", "Source"));
+        columns.push_back(std::tuple<std::string, std::string>("VARCHAR(255)", "Destination"));
+        columns.push_back(std::tuple<std::string, std::string>("INT", "Length"));
+        // columns.push_back(std::tuple<std::string, std::string>("INT", "TestColumn2_Int"));
 
-    // std::cout << "[" << timestamp << "] "
-    //           << "Src: " << src_addr << " -> "
-    //           << "Dst: " << dest_addr << " | "
-    //           << "Proto: " << protocol_name << " | "
-    //           << "Len: " << packet_len << " bytes" << std::endl;
+        // std::cout << "[" << timestamp << "] "
+        //           << "Src: " << src_addr << " -> "
+        //           << "Dst: " << dest_addr << " | "
+        //           << "Proto: " << protocol_name << " | "
+        //           << "Len: " << packet_len << " bytes" << std::endl;
 
-    std::cout << "After Column Init" << std::endl;
+        std::cout << "After Column Init" << std::endl;
 
-    DatabaseHelper = new PSQLDatabaseHelper(tableName, columns);
+        DatabaseHelper = new PSQLDatabaseHelper(tableName, columns);
 
-    std::cout << "DatabaseHelper created" << std::endl;
+        std::cout << "DatabaseHelper created" << std::endl;
 
-    std::string initTableQuery = DatabaseHelper->CreateInitializeTableQuery();
+        std::string initTableQuery = DatabaseHelper->CreateInitializeTableQuery();
 
-    Write(initTableQuery);
+        Write(initTableQuery);
 
-    std::cout << "-> Initialize Table Query:" << std::endl
-              << initTableQuery << std::endl;
+        std::cout << "-> Initialize Table Query:" << std::endl
+                << initTableQuery << std::endl;
 
-    // std::vector<std::vector<std::string>> data;
-    // std::vector<std::string> row1;
-    // row1.push_back("Test Name");
-    // data.push_back(row1);
+        // std::vector<std::vector<std::string>> data;
+        // std::vector<std::string> row1;
+        // row1.push_back("Test Name");
+        // data.push_back(row1);
 
-    // std::string addPacketQuery = DatabaseHelper->CreateAddPacketQuery(data);
-    // Write(addPacketQuery);
-    // // row1.push_back("5");
-    // std::cout << "-> Test Add Packet Data:" << std::endl << addPacketQuery << std::endl;
+        // std::string addPacketQuery = DatabaseHelper->CreateAddPacketQuery(data);
+        // Write(addPacketQuery);
+        // // row1.push_back("5");
+        // std::cout << "-> Test Add Packet Data:" << std::endl << addPacketQuery << std::endl;
 
-    // Hook into the capture stream
-    // capture_callback_add(CaptureCallback, (gpointer) this);
+        // Hook into the capture stream
+        // capture_callback_add(CaptureCallback, (gpointer) this);
 
-    // Register a tap to hook into the packet data stream
-    std::cout << "Calling RegisterTap" << std::endl;
-    RegisterTap();
+        // Register a tap to hook into the packet data stream
+        std::cout << "Calling RegisterTap" << std::endl;
+        RegisterTap();
+    }
 }
 
 /// @brief Delister
@@ -171,6 +173,12 @@ void PSQLShell::HandleDisconnect()
 
 void PSQLShell::RegisterTap()
 {
+    if (proto_psql != -1)
+    {
+        // If we've already registered the tap, then don't do anything
+        return;
+    }
+
     std::cout << "Registering tap" << std::endl;
     proto_psql = proto_register_protocol("PatchSQL Protocol", "PSQL", "psql");
     psql_tap = register_tap("psql");
