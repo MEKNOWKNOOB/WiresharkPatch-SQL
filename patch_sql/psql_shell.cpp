@@ -24,7 +24,6 @@ PSQLShell::PSQLShell(std::string dbName, std::string user, std::string passkey)
 
     if (!AttemptInitShell(dbName, user, passkey))
     {
-        std::cerr << "shell attempt failed" << std::endl;
         INSTANCE = nullptr;
         return;
     }
@@ -57,6 +56,11 @@ PSQLShell::~PSQLShell()
 /// @brief Also a delister
 void PSQLShell::HandleDisconnect()
 {
+    if(INSTANCE != nullptr)
+    {
+        return;
+    }
+    
     delete PSQLShell::INSTANCE;
 }
 
@@ -143,7 +147,7 @@ void PSQLShell::AttemptInitDatabase()
 /// @brief Write to PSQL shell, attempts to handle disconnects if no shell is active
 bool PSQLShell::Write(const std::string &input)
 {
-    if (!shellPipe)
+    if (INSTANCE == nullptr || shellPipe == nullptr)
     {
         return false;
     }
