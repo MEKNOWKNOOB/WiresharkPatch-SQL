@@ -137,7 +137,7 @@ bool PSQLShell::AttemptInitShell(std::string dbName, std::string user, std::stri
 
     setenv("PGPASSWORD", passkey.c_str(), 1);
 
-    std::string testCmd = "psql -d " + dbName + " -U " + user + " -c \"SELECT 1;\" >/dev/null 2>&1";
+    std::string testCmd = "psql -h localhost -d " + dbName + " -U " + user + " -c \"SELECT 1;\" >/dev/null 2>&1";
     if (std::system(testCmd.c_str()) != 0)
     {
         std::cerr << "Failed to establish connection" << std::endl;
@@ -145,7 +145,7 @@ bool PSQLShell::AttemptInitShell(std::string dbName, std::string user, std::stri
         return false;
     }
 
-    std::string cmd = "psql -d " + dbName + " -U " + user;
+    std::string cmd = "psql -h localhost -d " + dbName + " -U " + user;
     shellPipe = popen(cmd.c_str(), "w");
     if (!shellPipe)
     {
