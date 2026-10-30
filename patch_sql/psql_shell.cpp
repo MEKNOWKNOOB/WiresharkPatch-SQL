@@ -62,7 +62,7 @@ PSQLShell::PSQLShell(std::string dbName, std::string user, std::string passkey)
     //           << "Dst: " << dest_addr << " | "
     //           << "Proto: " << protocol_name << " | "
     //           << "Len: " << packet_len << " bytes" << std::endl;
-    
+
     std::cout << "After Column Init" << std::endl;
 
     DatabaseHelper = new PSQLDatabaseHelper(tableName, columns);
@@ -73,7 +73,8 @@ PSQLShell::PSQLShell(std::string dbName, std::string user, std::string passkey)
 
     Write(initTableQuery);
 
-    std::cout << "-> Initialize Table Query:" << std::endl << initTableQuery << std::endl;
+    std::cout << "-> Initialize Table Query:" << std::endl
+              << initTableQuery << std::endl;
 
     // std::vector<std::vector<std::string>> data;
     // std::vector<std::string> row1;
@@ -91,8 +92,6 @@ PSQLShell::PSQLShell(std::string dbName, std::string user, std::string passkey)
     // Register a tap to hook into the packet data stream
     std::cout << "Calling RegisterTap" << std::endl;
     RegisterTap();
-
-
 }
 
 /// @brief Delister
@@ -132,7 +131,23 @@ bool PSQLShell::AttemptInitShell(std::string dbName, std::string user, std::stri
 
 #elif defined(__linux__)
 
-    // do this later
+    setenv("PGPASSWORD", passkey.c_str(), 1);
+
+    std::string testCmd = "psql -d " + dbName + " -U " + user + " -c \"SELECT 1;\" >/dev/null 2>&1";
+    if (std::system(testCmd.c_str()) != 0)
+    {
+        std::cerr << "Failed to establish connection" << std::endl;
+        INSTANCE = nullptr;
+        return false;
+    }
+
+    std::string cmd = "psql -d " + dbName + " -U " + user;
+    shellPipe = popen(cmd.c_str(), "w");
+    if (!shellPipe)
+    {
+        std::cerr << "Failed to establish connection" << std::endl;
+        return false;
+    }
 
 #else
 
@@ -194,7 +209,7 @@ int PSQLShell::dissect_psql(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree,
               << "Len: " << packet_len << " bytes" << std::endl;
 
     std::cout << "Finished dissection for dissect_psql" << std::endl;
-    
+
     std::vector<std::vector<std::string>> data2;
     std::vector<std::string> row1;
     row1.push_back(std::to_string(timestamp));
