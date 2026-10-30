@@ -35,8 +35,11 @@ PSQLShell::~PSQLShell()
 {
     INSTANCE = nullptr;
 
-    delete DatabaseHelper;
-    DatabaseHelper = nullptr;
+    if (DatabaseHelper)
+    {
+        delete DatabaseHelper;
+        DatabaseHelper = nullptr;
+    }
 
     if (shellPipe)
     {
