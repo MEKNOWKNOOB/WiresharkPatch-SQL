@@ -33,7 +33,7 @@ public:
     static int dissect_psql(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data _U_);
 
 private:
-    FILE * shellPipe;
+    FILE * shellPipe = nullptr;
 
     bool AttemptInitShell(std::string dbName, std::string user, std::string passkey);
     void AttemptInitDatabase();
