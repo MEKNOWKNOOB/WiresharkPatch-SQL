@@ -22,7 +22,7 @@ bool PSQLShell::Write(const std::string &input)
 
     std::cout << ">>> Received input: " << input << std::endl;
 
-    if (fputs((input + "\n").c_str(), shellPipe))
+    if (fputs((input + "\n").c_str(), shellPipe) == EOF)
     {
         HandleDisconnect();
         return false;
