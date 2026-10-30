@@ -2280,7 +2280,9 @@ if(BUILD_wireshark AND QT_FOUND)
 
 	add_executable(wireshark WIN32 MACOSX_BUNDLE ${wireshark_FILES} ${EXTRA_BUNDLE_FILES}
 	    patch_sql/psql_shell.h
-	    patch_sql/psql_shell.cpp)
+	    patch_sql/psql_shell.cpp
+		patch_sql/psql_database_helper.h
+		patch_sql/psql_database_helper.cpp)
 	if(WIN32)
 		set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT wireshark)
 	endif()

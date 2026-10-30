@@ -9,6 +9,7 @@
 #include <epan/tap.h>
 #include <epan/address.h>
 #include <epan/to_str.h>
+#include "psql_database_helper.h"
 
 #include <string>
 
@@ -22,6 +23,7 @@ class PSQLShell
 {
 public:
     static PSQLShell *INSTANCE;
+    static PSQLDatabaseHelper *DatabaseHelper;
 
     static int proto_psql;
     static dissector_handle_t psql_handle;
