@@ -37,7 +37,7 @@ PSQLShell::~PSQLShell()
 
     delete DatabaseHelper;
     DatabaseHelper = nullptr;
-    
+
     if (shellPipe)
     {
 #if defined(_WIN32) || defined(_WIN64)
@@ -45,6 +45,7 @@ PSQLShell::~PSQLShell()
 #elif defined(__linux__)
         pclose(shellPipe);
 #endif
+        shellPipe = nullptr;
     }
 }
 
@@ -181,7 +182,7 @@ void PSQLShell::RegisterTap()
 /// @brief Confusing static function that register_dissector needs
 int PSQLShell::dissect_psql(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data _U_)
 {
-    if(INSTANCE == nullptr)
+    if (INSTANCE == nullptr)
     {
         std::cout << "No PSQL shell active" << std::endl;
         return -1;
