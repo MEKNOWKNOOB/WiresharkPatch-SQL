@@ -2916,7 +2916,7 @@
    </action>
   <action name="actionToolsSQL">
    <property name="text">
-    <string>SQL</string>
+    <string>PSQL</string>
    </property>
   </action>
  </widget>

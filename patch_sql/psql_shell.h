@@ -21,24 +21,29 @@ class PSQLShell
 {
 public:
     static PSQLShell *INSTANCE;
-    static PSQLDatabaseHelper *DatabaseHelper;
+    static PSQLDatabaseHelper *PacketsTable;
+    static PSQLDatabaseHelper *TCPTable;
+    static PSQLDatabaseHelper *UDPTable;
     static int proto_psql;
     static dissector_handle_t psql_handle;
     static int psql_tap;
 
     PSQLShell(std::string dbName, std::string user, std::string passkey);
     ~PSQLShell();
-    bool Write(const std::string& input);
+    bool Write(const std::string &input);
 
     static int dissect_psql(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data _U_);
 
 private:
-    FILE * shellPipe = nullptr;
+    FILE *shellPipe = nullptr;
 
     bool AttemptInitShell(std::string dbName, std::string user, std::string passkey);
     void AttemptInitDatabase();
     void HandleDisconnect();
     void RegisterTap();
+    
+    static std::string GetProtocolField(packet_info *pinfo);
+    static bool GetFieldValue(proto_tree *tree, const char *fieldName, std::string &value);
 };
 
 #endif // PSQLSHELL_H

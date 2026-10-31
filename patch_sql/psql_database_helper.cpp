@@ -9,7 +9,6 @@ PSQLDatabaseHelper::PSQLDatabaseHelper(std::string tableName, std::vector<std::t
 
 PSQLDatabaseHelper::~PSQLDatabaseHelper()
 {
-    
 }
 
 std::string PSQLDatabaseHelper::CreateInitializeTableQuery()
@@ -25,7 +24,6 @@ std::string PSQLDatabaseHelper::CreateInitializeTableQuery()
     query += tableName + "(\n";
     for (int i = 0; i < columns.size(); i++)
     {
-        std::cout << i << std::endl;
         query += std::get<1>(columns[i]) + " " + std::get<0>(columns[i]);
         if (i != columns.size() - 1)
         {
@@ -33,6 +31,7 @@ std::string PSQLDatabaseHelper::CreateInitializeTableQuery()
         }
         query += "\n";
     }
+    query += ", UNIQUE (Number, Timestamp)\n";
     query += ");";
 
     return query;
@@ -44,7 +43,7 @@ std::string PSQLDatabaseHelper::CreateAddPacketQuery(std::vector<std::vector<std
     // Query construction
     std::string query = "";
 
-    // INSERT FROMAT
+    // INSERT FORMAT
     query += "INSERT INTO " + tableName;
     query += "(";
     for (int col = 0; col < columns.size(); col++)
@@ -58,7 +57,7 @@ std::string PSQLDatabaseHelper::CreateAddPacketQuery(std::vector<std::vector<std
     query += ")\n";
 
     // VALUES FORMAT
-    query += "VALUES\n";
+    query += "VALUES";
     for (int row = 0; row < data.size(); row++)
     {
         query += "(";
@@ -78,7 +77,10 @@ std::string PSQLDatabaseHelper::CreateAddPacketQuery(std::vector<std::vector<std
             {
                 query += data[row][col];
             }
-
+            else if (std::get<0>(columns[col]) == "BIGINT")
+            {
+                query += data[row][col];
+            }
             if (col != data[row].size() - 1)
             {
                 query += ",";
