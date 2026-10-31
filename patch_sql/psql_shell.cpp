@@ -153,10 +153,11 @@ void PSQLShell::AttemptInitDatabase()
     columnsTCP.push_back(std::tuple<std::string, std::string>("INT", "Number"));
     columnsTCP.push_back(std::tuple<std::string, std::string>("TIMESTAMP", "Timestamp"));
     columnsTCP.push_back(std::tuple<std::string, std::string>("BIGINT", "SeqNumber"));
-    columnsTCP.push_back(std::tuple<std::string, std::string>("BIGINT", "AckNumber"));
     columnsTCP.push_back(std::tuple<std::string, std::string>("BIGINT", "SeqNumberRaw"));
+    columnsTCP.push_back(std::tuple<std::string, std::string>("BIGINT", "NextSeqNumber"));
+    columnsTCP.push_back(std::tuple<std::string, std::string>("BIGINT", "AckNumber"));
     columnsTCP.push_back(std::tuple<std::string, std::string>("BIGINT", "AckNumberRaw"));
-    columnsTCP.push_back(std::tuple<std::string, std::string>("BIGINT", "WindowNumber"));
+    columnsTCP.push_back(std::tuple<std::string, std::string>("BIGINT", "WindowSize"));
 
     TCPTable = new PSQLDatabaseHelper("TCP", columnsTCP);
     Write(TCPTable->CreateInitializeTableQuery());
@@ -210,6 +211,7 @@ void PSQLShell::RegisterTap()
     const char *wantedFieldNames[] = {
         "tcp.seq",
         "tcp.ack",
+        "tcp.nxtseq",
         "tcp.seq_raw",
         "tcp.ack_raw",
         "tcp.window_size_value"};
@@ -276,25 +278,28 @@ int PSQLShell::dissect_psql(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree,
     if (pinfo->ptype == PT_TCP)
     {
         std::string seq_num = "0";
+        std::string next_seq_num = "0";
         std::string ack_num = "0";
         std::string seq_num_raw = "0";
         std::string ack_num_raw = "0";
-        std::string win_num_raw = "0";
+        std::string win_size_raw = "0";
         GetFieldValue(tree, "tcp.seq", seq_num);
-        GetFieldValue(tree, "tcp.ack", ack_num);
         GetFieldValue(tree, "tcp.seq_raw", seq_num_raw);
+        GetFieldValue(tree, "tcp.ack", ack_num);
         GetFieldValue(tree, "tcp.ack_raw", ack_num_raw);
-        GetFieldValue(tree, "tcp.window_size_value", win_num_raw);
+        GetFieldValue(tree, "tcp.nxtseq", next_seq_num);
+        GetFieldValue(tree, "tcp.window_size_value", win_size_raw);
         std::vector<std::vector<std::string>> tcp_table;
         std::vector<std::string> tcp_tuple;
 
         tcp_tuple.push_back(number);
         tcp_tuple.push_back(timestamp);
         tcp_tuple.push_back(seq_num);
-        tcp_tuple.push_back(ack_num);
         tcp_tuple.push_back(seq_num_raw);
+        tcp_tuple.push_back(next_seq_num);
+        tcp_tuple.push_back(ack_num);
         tcp_tuple.push_back(ack_num_raw);
-        tcp_tuple.push_back(win_num_raw);
+        tcp_tuple.push_back(win_size_raw);
 
         tcp_table.push_back(tcp_tuple);
         INSTANCE->Write(TCPTable->CreateAddPacketQuery(tcp_table));
